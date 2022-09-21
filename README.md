@@ -14,4 +14,11 @@ $ sbcl --script filename.lisp
 - Variables
 - Lists
 - List managing functions
+- Macros
+- While loop
+- Classes
+- Generic functions and methods
+
+# Sources of information used
+-  [Lisp Lang org](https://lisp-lang.org/learn/)
 
