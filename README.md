@@ -20,5 +20,6 @@ $ sbcl --script filename.lisp
 - Generic functions and methods
 
 # Sources of information used
--  [Lisp Lang org](https://lisp-lang.org/learn/)
+- [Lisp Lang org](https://lisp-lang.org/learn/)
+- [Practical Common Lisp book](https://gigamonkeys.com/book/)
 
