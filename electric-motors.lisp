@@ -15,80 +15,94 @@
 |#
 
 ; one 30 HP induction motor with coil rotor branch and capacitors
-(print "230V, coil rotor, 30HP")
-(print "FLA = 80A")
+(princ "230V, coil rotor, 30HP") (terpri)
 ; 86% efficiency means there is another value for input power
-(defvar p-30 (* (/ 30 0.86) 746))
-(print "real input kW")
-(print p-30)
 ; I = P / (sqrt3 V FP)
-(defvar i-30 (/ p-30 (* (sqrt 3) (* 230 0.85))))
-(print "real input A")
-(print i-30)
+(defvar i-30 (/ (/ (* (/ 30 0.86) 746) (* (sqrt 3) (* 230 0.85))) 0.94))
+(princ "I_30 = ")
+(write i-30)
+(princ " A")
 
-(print "")
+(terpri)
+(terpri)
 
 ; two 40 HP syncronic motors
-(print "230V, syncronic motor, 40HP")
-(print "FLA = 83A")
-(print "two motors, so the source conductor has")
-(defvar i-40 (+ (* 83 1.25) 83))
-(print "source conductor A")
-(print i-40)
-
-(print "")
+(princ "230V, syncronic motor, 40HP") (terpri)
+(princ "I_40 = ")
+(defvar i-40 (/ (* 83 (/ 1 0.85)) 0.94))
+(write i-40)
+(princ " A")
+ 
+(terpri)
+(terpri)
 
 ; four 15 HP squirrel cage induction motors
-(print "230V, squirrel cage rotor motor, 15HP")
-(print "FLA = 42A")
-(print "four motors, only three active, so the source conductor has")
-(defvar i-15 (+ (* 42 1.25) (* 2 83)))
-(print "source conductor A")
-(print i-15)
+(princ "230V, squirrel cage rotor motor, 15HP") (terpri)
+(princ "I_15 = ")
+(defparameter i-15 (/ 42 0.94))
+(write i-15)
+(princ " A")
 
-(print "")
+(terpri)
+(terpri)
 
 ; 53 kW installed load, DF max 0,85 with PF 1, not continous load
-(defvar i-load (* (/ 53e3 (* 230 (* (sqrt 3) 1))) 0.85))
-(print "FLA for 53 kW load")
-(print i-load)
+(defvar i-load (/ (* (/ 53e3 (* 230 (* (sqrt 3) 1))) 0.85) 0.94))
+(princ "53 kW luminic load") (terpri)
+(princ "I_load = ")
+(write i-load)
+(princ " A")
 
-(print "")
+(terpri)
+(terpri)
 
 ; whole system's source conductor
-(defvar i-system (+ (+ (* i-15 1.25) (+ i-40 i-30)) i-load))
-(print "general feed conductor A")
-(print i-system)
+(defvar i-system (+ (* (+ i-40 i-load) 1.25) (+ i-40 (+ i-30 (* 3 i-15)))))
+(princ "Feeder current with temperature correction: ")
+(write i-system)
+(princ " A")
 
-(print "")
+(terpri)
 
-; AWG conductor for the system in aluminum, 2 by phase of 38 meters
-(print "half of the current would be in each conductor")
-(print (/ i-system 2))
-(print "applying 0,94 factor due to 33ºC")
-(print (/ (/ i-system 0.94) 2))
-(print "and 2 by phase for a tri-phasic system 4 threads means 6 ")
-(print "current conductors, which has an 80% factor due to proximity")
-(print (/ (/ (/ i-system 0.8) 0.94) 2))
-(print "in aluminum would be AWG #1000 MCM which can whitstand 445 A @ 75ºC")
+; AWG conductor for the system in copper, 1 by phase in cable trays
+(princ "Copper AWG #500 MCM which can whitstand 620 A @ 75ºC") ; NEC 310.15(B)(17)
 
-(print "")
+(terpri)
+(terpri)
 
-; Breaker for the main feed conductor
-(print "using 150% for the 30 HP motor")
-(print (* i-30 1.5))
-(print "110 A breaker")
-(print "using 250% for the 40 HP motors")
-(print (* i-40 2.5))
-(print "450 A breaker")
-(print "using 800% for 15 HP motors")
-(print (* i-15 8.0))
-(print "1600 A breaker")
-(print "The static load branch had and amperage of:") 
-(print i-load)
-(print "110 A breaker")
-(print "")
-(print "Therfore, the current for the whole system is")
-(print (+ 1600 (+ i-30 (+ i-40 i-load))))
-(print "1600 A breaker for the whole system") ; 240.6(A)
+; Copper conductors for each motor derivation
+(princ "125% because of 430.22(A)") (terpri)
+(princ "230V, coil rotor, 30HP") (terpri)
+(princ "I_30 = ") (write (* i-30 1.25)) (princ " A") (terpri)
+(princ "Copper AWG #4 which can whitstand 125 A @75ºC") (terpri)
+
+(princ "230V, syncronic motor, 40HP") (terpri)
+(princ "I_40 = ") (write (* i-40 1.25)) (princ " A") (terpri)
+(princ "Copper AWG #3 which can whitstand 145 A @75ºC, but it isn't available in Costa Rica") (terpri)
+(princ "therefore Copper AWG #2 which can whitstand 170 A @75ºC") (terpri)
+
+(princ "230V, squirrel cage rotor motor, 15HP") (terpri)
+(princ "I_15 = ") (write (* i-15 1.25)) (princ " A") (terpri)
+(princ "Copper AWG #8 which can whitstand 60 A @60ºC") (terpri)
+
+(terpri)
+(terpri)
+
+; Breaker for the main branch
+(princ "150% for the 30 HP motor: ") (write (* i-30 1.5)) (princ " A") (terpri)
+(princ "110 A breaker") (terpri)
+(princ "250% for the 40 HP motors: ") (write (* i-40 2.5)) (princ " A") (terpri)
+(princ "225 A breaker") (terpri)
+(princ "800% for 15 HP motors: ") (write (* i-15 8.0)) (princ " A") (terpri)
+(princ "350 A breaker")
+
+(terpri)
+(terpri)
+
+(princ "Therefore, the current for main branch is: ")
+(write (+ 350 (+ i-30 (+ i-40 i-load)))) (princ " A") (terpri)
+(princ "600 A breaker for the main branch") ; 240.6(A)
+
+(terpri)
+(terpri)
 
