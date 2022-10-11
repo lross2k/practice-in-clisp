@@ -14,11 +14,17 @@
 3. Breaker of the principal box that protects the source conductor
 |#
 
+(defun apply-temp-correction (current)
+  (if (> current 99)
+    (/ current 0.94)
+    (/ current 0.91)))
+
 ; one 30 HP induction motor with coil rotor branch and capacitors
 (princ "230V, coil rotor, 30HP") (terpri)
 ; 86% efficiency means there is another value for input power
 ; I = P / (sqrt3 V FP)
-(defvar i-30 (/ (/ (* (/ 30 0.86) 746) (* (sqrt 3) (* 230 0.85))) 0.94))
+(defvar i-30 (/ (* (/ 30 0.86) 746) (* (sqrt 3) (* 230 0.85))))
+(defvar i-30-temp (apply-temp-correction i-30))
 (princ "I_30 = ")
 (write i-30)
 (princ " A")
@@ -29,7 +35,8 @@
 ; two 40 HP syncronic motors
 (princ "230V, syncronic motor, 40HP") (terpri)
 (princ "I_40 = ")
-(defvar i-40 (/ (* 83 (/ 1 0.85)) 0.94))
+(defvar i-40 (* 83 (/ 1 0.85)))
+(defvar i-40-temp (apply-temp-correction i-40))
 (write i-40)
 (princ " A")
  
@@ -39,7 +46,8 @@
 ; four 15 HP squirrel cage induction motors
 (princ "230V, squirrel cage rotor motor, 15HP") (terpri)
 (princ "I_15 = ")
-(defparameter i-15 (/ 42 0.94))
+(defparameter i-15 42)
+(defparameter i-15-temp (apply-temp-correction i-15))
 (write i-15)
 (princ " A")
 
@@ -47,8 +55,9 @@
 (terpri)
 
 ; 53 kW installed load, DF max 0,85 with PF 1, not continous load
-(defvar i-load (/ (* (/ 53e3 (* 230 (* (sqrt 3) 1))) 0.85) 0.94))
 (princ "53 kW luminic load") (terpri)
+(defvar i-load (* (/ 53e3 (* 230 (* (sqrt 3) 1))) 0.85))
+(defvar i-load-temp (apply-temp-correction i-load))
 (princ "I_load = ")
 (write i-load)
 (princ " A")
@@ -58,8 +67,12 @@
 
 ; whole system's source conductor
 (defvar i-system (+ (* (+ i-40 i-load) 1.25) (+ i-40 (+ i-30 (* 3 i-15)))))
-(princ "Feeder current with temperature correction: ")
+(princ "Feeder current without temperature correction: ")
 (write i-system)
+(princ " A") (terpri)
+(defvar i-system-temp (+ (* (+ i-40-temp i-load-temp) 1.25) (+ i-40-temp (+ i-30-temp (* 3 i-15-temp)))))
+(princ "Feeder current with temperature correction: ")
+(write i-system-temp)
 (princ " A")
 
 (terpri)
@@ -72,18 +85,23 @@
 
 ; Copper conductors for each motor derivation
 (princ "125% because of 430.22(A)") (terpri)
+
 (princ "230V, coil rotor, 30HP") (terpri)
-(princ "I_30 = ") (write (* i-30 1.25)) (princ " A") (terpri)
+(princ "I_30 = ") (write (apply-temp-correction (* i-30 1.25))) (princ " A") (terpri)
 (princ "Copper AWG #4 which can whitstand 125 A @75ºC") (terpri)
 
 (princ "230V, syncronic motor, 40HP") (terpri)
-(princ "I_40 = ") (write (* i-40 1.25)) (princ " A") (terpri)
+(princ "I_40 = ") (write (apply-temp-correction (* i-40 1.25))) (princ " A") (terpri)
 (princ "Copper AWG #3 which can whitstand 145 A @75ºC, but it isn't available in Costa Rica") (terpri)
 (princ "therefore Copper AWG #2 which can whitstand 170 A @75ºC") (terpri)
 
 (princ "230V, squirrel cage rotor motor, 15HP") (terpri)
-(princ "I_15 = ") (write (* i-15 1.25)) (princ " A") (terpri)
-(princ "Copper AWG #8 which can whitstand 60 A @60ºC") (terpri)
+(princ "I_15 = ") (write (apply-temp-correction (* i-15 1.25))) (princ " A") (terpri)
+(princ "Copper AWG #8 which can whitstand 60 A @60ºC")
+
+(princ "static load") (terpri)
+(princ "I_load = ") (write (apply-temp-correction (* i-load 1.25))) (princ " A") (terpri)
+(princ "Copper AWG #2 which can whitstand 170 A @75ºC")
 
 (terpri)
 (terpri)
@@ -94,15 +112,15 @@
 (princ "250% for the 40 HP motors: ") (write (* i-40 2.5)) (princ " A") (terpri)
 (princ "225 A breaker") (terpri)
 (princ "800% for 15 HP motors: ") (write (* i-15 8.0)) (princ " A") (terpri)
-(princ "350 A breaker")
+(princ "300 A breaker") (terpri)
+(princ "ilumination loads: ") (write i-load) (princ " A")
 
 (terpri)
 (terpri)
 
 (princ "Therefore, the current for main branch is: ")
-(write (+ 350 (+ i-30 (+ i-40 i-load)))) (princ " A") (terpri)
-(princ "600 A breaker for the main branch") ; 240.6(A)
+(write (+ 300 (+ i-30 (+ (* i-40 2) (+ (* i-15 2) i-load))))) (princ " A") (terpri)
+(princ "700 A breaker for the main branch") ; 240.6(A)
 
-(terpri)
 (terpri)
 
